@@ -1,0 +1,18 @@
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Config & Logs
+config/
+*.log
+
+# Output Videos
+video/
+screenshot/
+Videos/
+ScreenCaptures/
+
+# IDE
+.idea/
+.vscode/
