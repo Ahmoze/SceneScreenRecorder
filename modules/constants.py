@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Optional, List, Tuple
 
 APP_TITLE = "Scene-Grade Screen Recorder"
-APP_VERSION = "v2.8 (Modular Edition)"
+APP_VERSION = "v3.0 (Stereo Mix Edition)"
 FFMPEG_PATH = "ffmpeg"
 FFMPEG_LOGLEVEL = "error"
 STOP_TIMEOUT_SEC = 5.0
