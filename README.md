@@ -86,23 +86,16 @@ Projekat je refaktorisan iz jedne skripte u modularni paket:
 Klonirajte repozitorijum i instalirajte zavisnosti:
 
 ```bash
-git clone [https://github.com/TVOJE_IME/SceneScreenRecorder.git](https://github.com/TVOJE_IME/SceneScreenRecorder.git)
+git clone https://github.com/Ahmoze/SceneScreenRecorder.git
 cd SceneScreenRecorder
 pip install -r requirements.txt
-```
+3. Pokretanje
+Aplikacija se pokreće preko main.py fajla u korenu projekta:
 
-### 3. Pokretanje
-Aplikacija se pokreće preko `main.py` fajla u korenu projekta:
-
-```bash
+Bash
 python main.py
-```
-
----
-
-## 📂 Struktura Fajlova
-
-```text
+📂 Struktura Fajlova
+Plaintext
 SceneScreenRecorder/
 │
 ├── main.py                 # Entry Point (pokreće GUI i učitava stilove)
@@ -116,13 +109,7 @@ SceneScreenRecorder/
     ├── hardware.py         # Win32 API (Monitori, DPI, Hotkeys)
     ├── styling.py          # Teme i Custom SpinBox iscrtavanje
     └── main_window.py      # Glavni GUI prozor
-```
+📝 Licenca
+Projekat je otvorenog koda (MIT License). Dizajnirano sa ❤️ od strane triplesec.
 
----
-
-## 📝 Licenca
-
-Projekat je otvorenog koda (**MIT License**).
-Dizajnirano sa ❤️ od strane **TripleSec**.
-
-> *"Pixel-perfect capture for a pixel-perfect world."*
+"Pixel-perfect capture for a pixel-perfect world."
