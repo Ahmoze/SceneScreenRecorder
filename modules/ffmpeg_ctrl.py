@@ -2,7 +2,6 @@ import subprocess
 import threading
 import time
 import sys
-import tempfile
 from pathlib import Path
 from datetime import datetime
 from PySide6 import QtCore
@@ -23,19 +22,26 @@ class FfmpegController(QtCore.QObject):
         self.is_paused = False
         self.current_crf = 23
 
-    def _emit_log(self, msg): self.sig_log.emit(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
-    def _emit_status(self, msg, col): self.sig_status.emit(msg, col)
+    def _emit_log(self, msg):
+        self.sig_log.emit(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
+
+    def _emit_status(self, msg, col):
+        self.sig_status.emit(msg, col)
     
     def _read_stderr(self):
         while not self._stderr_stop.is_set() and self.proc:
             try:
                 line = self.proc.stderr.readline()
-                if not line: break
-                if line.strip(): self.sig_log.emit(f"ffmpeg: {line.strip()}")
-            except: break
+                if not line:
+                    break
+                if line.strip():
+                    self.sig_log.emit(f"ffmpeg: {line.strip()}")
+            except:
+                break
 
-    def start_recording(self, mon, res_mode, custom_wh, root, fps, crf):
-        if self.is_recording: return False
+    def start_recording(self, mon, res_mode, custom_wh, root, fps, crf, record_audio=False):
+        if self.is_recording:
+            return False
         
         # Check output
         ok, msg = ensure_output_root(root)
@@ -47,23 +53,68 @@ class FfmpegController(QtCore.QObject):
         ensure_dir(out_path)
         outfile = out_path / f"capture_{mon.index}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
 
-        # Check gdigrab region
-        # (Simplified check - assuming it works for now to keep code smaller, or use original logic)
-        # For robustness, we construct the command directly:
+        # Video (gdigrab)
+        args = [
+            self.ffmpeg_path,
+            "-y",
+            "-hide_banner",
+            "-loglevel", FFMPEG_LOGLEVEL,
+            "-f", "gdigrab",
+            "-framerate", str(fps),
+            "-offset_x", str(mon.left),
+            "-offset_y", str(mon.top),
+            "-video_size", f"{mon.w}x{mon.h}",
+            "-i", "desktop",
+        ]
+
+        # Audio (WASAPI sistemski zvuk)
+        if record_audio:
+            args += [
+                "-f", "wasapi",
+                "-i", "default",  # ili npr. "Speakers (Realtek(R) Audio)"
+            ]
         
-        args = [self.ffmpeg_path, "-y", "-hide_banner", "-loglevel", FFMPEG_LOGLEVEL, "-f", "gdigrab", "-framerate", str(fps),
-                "-offset_x", str(mon.left), "-offset_y", str(mon.top), "-video_size", f"{mon.w}x{mon.h}", "-i", "desktop"]
-        
+        # Scale ako je custom rezolucija
         if res_mode == "Custom" and custom_wh:
             args += ["-vf", f"scale={custom_wh[0]}:{custom_wh[1]}"]
             
-        args += ["-vsync", "cfr", "-r", str(fps), "-c:v", "libx264", "-preset", "veryfast", "-crf", str(crf), "-pix_fmt", "yuv420p", str(outfile)]
+        # Output
+        if record_audio:
+            args += [
+                "-vsync", "cfr",
+                "-r", str(fps),
+                "-c:v", "libx264",
+                "-preset", "veryfast",
+                "-crf", str(crf),
+                "-pix_fmt", "yuv420p",
+                "-c:a", "aac",
+                "-b:a", "192k",
+                str(outfile),
+            ]
+        else:
+            args += [
+                "-vsync", "cfr",
+                "-r", str(fps),
+                "-c:v", "libx264",
+                "-preset", "veryfast",
+                "-crf", str(crf),
+                "-pix_fmt", "yuv420p",
+                str(outfile),
+            ]
         
         self._emit_log(f"CMD: {' '.join(args)}")
         
         try:
             cf = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
-            self.proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, bufsize=1, creationflags=cf)
+            self.proc = subprocess.Popen(
+                args,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,
+                creationflags=cf,
+            )
             time.sleep(0.5)
             if self.proc.poll() is not None:
                 self._emit_status("FFmpeg fail (start)", "#FF4444")
@@ -83,14 +134,20 @@ class FfmpegController(QtCore.QObject):
             return False
 
     def stop_recording(self):
-        if not self.proc: return
+        if not self.proc:
+            return
         self._emit_status("Zaustavljam...", "#FFCC00")
         try:
-            if self.proc.stdin: self.proc.stdin.write("q\n"); self.proc.stdin.flush()
-        except: pass
+            if self.proc.stdin:
+                self.proc.stdin.write("q\n")
+                self.proc.stdin.flush()
+        except:
+            pass
         
-        try: self.proc.wait(timeout=STOP_TIMEOUT_SEC)
-        except: self.proc.kill()
+        try:
+            self.proc.wait(timeout=STOP_TIMEOUT_SEC)
+        except:
+            self.proc.kill()
         
         self._stderr_stop.set()
         self.is_recording = False
@@ -100,9 +157,15 @@ class FfmpegController(QtCore.QObject):
         self._emit_status("Sačuvano.", "#88FF88")
 
     def pause_toggle(self):
-        if not self.is_recording or not self.proc: return
+        if not self.is_recording or not self.proc:
+            return
         try:
-            self.proc.stdin.write("p\n"); self.proc.stdin.flush()
+            self.proc.stdin.write("p\n")
+            self.proc.stdin.flush()
             self.is_paused = not self.is_paused
-            self._emit_status("PAUZIRANO" if self.is_paused else "SNIMANJE", "#FFCC00" if self.is_paused else "#88FF88")
-        except: pass
+            self._emit_status(
+                "PAUZIRANO" if self.is_paused else "SNIMANJE",
+                "#FFCC00" if self.is_paused else "#88FF88",
+            )
+        except:
+            pass

@@ -17,7 +17,7 @@ Većina snimača koristi "logičku" rezoluciju koju prijavljuje Windows (npr. 15
 Rezultat je snimak "pixel-perfect" oštrine, bez obzira na sistemska podešavanja skaliranja.
 
 ### 👤 Autor
-Razvio i dizajnirao: **TripleSec**
+Razvio i dizajnirao: **triplesec**
 
 ---
 
@@ -37,6 +37,27 @@ Razvio i dizajnirao: **TripleSec**
 * **Globalne Prečice:** Kontrolišite snimanje iz bilo koje aplikacije ili igre.
 * **System Tray:** Minimizujte aplikaciju u tray (kod sata) - ona nastavlja da radi u pozadini.
 * **FFmpeg Backend:** Koristi `libx264` (ultrafast/veryfast preset) za minimalno opterećenje procesora.
+
+### 🔊 Snimanje Sistemskog Zvuka (WASAPI)
+
+Aplikacija podržava snimanje **sistemskog zvuka** koristeći Windows **WASAPI loopback**.
+
+To znači da se snima sve što čuješ na zvučnicima:
+- FL Studio output  
+- YouTube / Spotify  
+- Igre  
+- Windows zvukovi  
+
+Bez dodatnih drajvera, bez virtualnih kablova, bez komplikacija.
+
+Tehnologija:
+* `-f wasapi -i default`  
+* Radi na Windows 10 i Windows 11  
+* Radi paralelno sa `gdigrab` video capture-om  
+
+U GUI-u postoji opcija:
+**[ ] Snimaj sistemski zvuk (WASAPI)**  
+koja se može uključiti ili isključiti po potrebi.
 
 ---
 
@@ -123,6 +144,6 @@ SceneScreenRecorder/
 ## 📝 Licenca
 
 Projekat je otvorenog koda (**MIT License**).
-Dizajnirano sa ❤️ od strane **TripleSec**.
+Dizajnirano sa ❤️ od strane **triplesec**.
 
 > *"Pixel-perfect capture for a pixel-perfect world."*
