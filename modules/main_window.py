@@ -109,8 +109,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.chk_tray = QtWidgets.QCheckBox("Start => Tray")
         self.chk_tray.setChecked(True)
 
-        # NOVO: checkbox za sistemski zvuk (WASAPI)
-        self.chk_sys_audio = QtWidgets.QCheckBox("Snimaj sistemski zvuk (WASAPI)")
+        # NOVO: checkbox za sistemski zvuk (Stereo Mix)
+        self.chk_sys_audio = QtWidgets.QCheckBox("Snimaj sistemski zvuk (Stereo Mix)")
         self.chk_sys_audio.setChecked(False)
         
         gl.addWidget(QtWidgets.QLabel("Monitor:"), 0, 0)

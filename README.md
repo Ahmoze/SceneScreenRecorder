@@ -38,26 +38,24 @@ Razvio i dizajnirao: **triplesec**
 * **System Tray:** Minimizujte aplikaciju u tray (kod sata) - ona nastavlja da radi u pozadini.
 * **FFmpeg Backend:** Koristi `libx264` (ultrafast/veryfast preset) za minimalno opterećenje procesora.
 
-### 🔊 Snimanje Sistemskog Zvuka (WASAPI)
+### 🔊 Snimanje Sistemskog Zvuka (DirectShow / Stereo Mix)
 
-Aplikacija podržava snimanje **sistemskog zvuka** koristeći Windows **WASAPI loopback**.
+Aplikacija podržava snimanje **sistemskog zvuka** koristeći **Stereo Mix** preko DirectShow interfejsa. Ovo je izabrano kao najstabilnije rešenje koje zaobilazi probleme sa WASAPI drajverima na određenim Windows konfiguracijama.
 
-To znači da se snima sve što čuješ na zvučnicima:
-- FL Studio output  
-- YouTube / Spotify  
-- Igre  
-- Windows zvukovi  
-
-Bez dodatnih drajvera, bez virtualnih kablova, bez komplikacija.
+**⚠️ VAŽNO: Kako omogućiti snimanje zvuka?**
+Da bi ova funkcija radila, morate jednokratno omogućiti "Stereo Mix" u Windows-u:
+1. Otvorite **Control Panel > Sound** (ili kucajte "Change system sounds" u Start meniju).
+2. Idite na karticu **Recording** (Snimanje).
+3. Desni klik na prazno belo polje -> Štiklirajte **"Show Disabled Devices"**.
+4. Pojaviće se **Stereo Mix**. Desni klik na njega -> **Enable** (Omogući).
 
 Tehnologija:
-* `-f wasapi -i default`  
-* Radi na Windows 10 i Windows 11  
-* Radi paralelno sa `gdigrab` video capture-om  
+* `-f dshow` (DirectShow)
+* Input: `audio="Stereo Mix (Realtek(R) Audio)"`
+* Radi paralelno sa `gdigrab` video capture-om.
 
 U GUI-u postoji opcija:
-**[ ] Snimaj sistemski zvuk (WASAPI)**  
-koja se može uključiti ili isključiti po potrebi.
+**[ ] Snimaj sistemski zvuk** koja automatski aktivira ovaj režim.
 
 ---
 

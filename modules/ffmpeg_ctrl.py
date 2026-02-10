@@ -67,40 +67,34 @@ class FfmpegController(QtCore.QObject):
             "-i", "desktop",
         ]
 
-        # Audio (WASAPI sistemski zvuk)
+        # Audio (Stereo Mix preko DirectShow-a)
+        # Ovo koristi tvoj novi sistemski FFmpeg i dshow koji provereno radi
         if record_audio:
             args += [
-                "-f", "wasapi",
-                "-i", "default",  # ili npr. "Speakers (Realtek(R) Audio)"
+                "-f", "dshow",
+                "-audio_buffer_size", "100",
+                "-i", "audio=Stereo Mix (Realtek(R) Audio)" # Tacan naziv iz tvojih logova
             ]
         
         # Scale ako je custom rezolucija
         if res_mode == "Custom" and custom_wh:
             args += ["-vf", f"scale={custom_wh[0]}:{custom_wh[1]}"]
             
-        # Output
+        # Output Encoder Settings
+        encoding_args = [
+            "-vsync", "cfr",
+            "-r", str(fps),
+            "-c:v", "libx264",
+            "-preset", "veryfast",
+            "-crf", str(crf),
+            "-pix_fmt", "yuv420p",
+        ]
+        
         if record_audio:
-            args += [
-                "-vsync", "cfr",
-                "-r", str(fps),
-                "-c:v", "libx264",
-                "-preset", "veryfast",
-                "-crf", str(crf),
-                "-pix_fmt", "yuv420p",
-                "-c:a", "aac",
-                "-b:a", "192k",
-                str(outfile),
-            ]
-        else:
-            args += [
-                "-vsync", "cfr",
-                "-r", str(fps),
-                "-c:v", "libx264",
-                "-preset", "veryfast",
-                "-crf", str(crf),
-                "-pix_fmt", "yuv420p",
-                str(outfile),
-            ]
+            encoding_args += ["-c:a", "aac", "-b:a", "192k"]
+            
+        args += encoding_args
+        args.append(str(outfile))
         
         self._emit_log(f"CMD: {' '.join(args)}")
         
@@ -152,7 +146,15 @@ class FfmpegController(QtCore.QObject):
         self._stderr_stop.set()
         self.is_recording = False
         self.is_paused = False
-        self.sig_process_ended.emit(self.proc.poll() if self.proc else -1)
+        
+        # Uzimanje exit koda
+        code = self.proc.poll() if self.proc else -1
+
+        # FIX: Sprecava overflow gresku na Windows-u
+        if code is not None and code > 2147483647:
+            code = -1
+
+        self.sig_process_ended.emit(code)
         self.proc = None
         self._emit_status("Sačuvano.", "#88FF88")
 
